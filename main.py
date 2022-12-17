@@ -101,7 +101,6 @@ def signup(
         f.write(json.dumps(results))
         return user
 
-
 ### Login with a User
 @app.post(
     path="/login",
@@ -122,7 +121,25 @@ def login():
     tags=["Users"]
 )
 def display_all_users():
-    pass
+    """
+    Display all users in db
+
+    This path operation will display all users in the app.
+
+    Parameters:
+        -
+
+    Returns: Returns json list with all users in the app, with the following data:
+        - user_id: UUID
+        - email: Emailstr
+        - firstName: str
+        - lastName: str
+        - birth_date: date
+
+    """
+    with open("users.json", "r", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        return results
 
 ### Display a single uer
 @app.get(
