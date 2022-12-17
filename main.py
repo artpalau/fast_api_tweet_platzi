@@ -14,7 +14,7 @@ from pydantic import Field
 ## FastApi
 from fastapi import FastAPI
 from fastapi import status
-from fastapi import Body
+from fastapi import Body, Form
 
 app = FastAPI()
 
@@ -109,8 +109,24 @@ def signup(
     summary="Login user",
     tags=["Users"]
 )
-def login():
-    pass
+def login(
+    userName: str = Form(..., min_length=1),
+    user_id: str = Form(..., min_length=1),
+    password: str = Form(..., min_length=1)
+):
+    """
+    Login
+
+    This path operation lets you login to the app.
+
+    Parameters:
+        - userName: str
+        - user_id: str
+        - password: str
+
+    Returns:
+        Returns the users data.
+    """
 
 ### Display all Users
 @app.get(
