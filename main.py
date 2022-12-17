@@ -104,15 +104,13 @@ def signup(
 ### Login with a User
 @app.post(
     path="/login",
-    response_model=User,
+    #response_model=User,
     status_code=status.HTTP_200_OK,
     summary="Login user",
     tags=["Users"]
 )
 def login(
-    userName: str = Form(..., min_length=1),
-    user_id: str = Form(..., min_length=1),
-    password: str = Form(..., min_length=1)
+    userLogin: UserLogin = Body(...)
 ):
     """
     Login
@@ -120,14 +118,24 @@ def login(
     This path operation lets you login to the app.
 
     Parameters:
-        - userName: str
-        - user_id: str
+        - user_id: UUID
+        - email: Emailstr
         - password: str
 
     Returns:
-        Returns the users data.
+        Returns confirmation that it is correct
     """
-
+    with open("users.json", "r+", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        user_dict = userLogin.dict() 
+        user_dict["user_id"] = str(user_dict["user_id"])
+        for user_data in results:
+            if user_data["user_id"] == user_dict["user_id"]:
+                if user_data["email"] == user_dict["email"]:
+                    if user_data["password"] == user_dict["password"]:
+                        return {"login": "successful"}
+                    else: {"something": "was incorrect"}
+            
 ### Display all Users
 @app.get(
     path="/users",
