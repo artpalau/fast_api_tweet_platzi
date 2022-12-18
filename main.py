@@ -14,7 +14,9 @@ from pydantic import Field
 ## FastApi
 from fastapi import FastAPI
 from fastapi import status
-from fastapi import Body, Form
+from fastapi import Body, Form, Path
+from fastapi import HTTPException
+
 
 app = FastAPI()
 
@@ -173,8 +175,40 @@ def display_all_users():
     summary="Display a user",
     tags=["Users"]
 )
-def display_user():
-    pass
+def display_user(
+    user_id: str = Path(..., min_length=1)
+):
+    """
+    Display single user data
+
+    This path operation will display a single user from the app.
+
+    Parameters:
+        - userid : str
+
+    Returns: Returns json list with all users in the app, with the following data:
+        - user_id: UUID
+        - email: Emailstr
+        - firstName: str
+        - lastName: str
+        - birth_date: date
+
+    """
+    with open("users.json", "r", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        user_found = False
+        for user_data in results:
+            if user_data["user_id"] == user_id:
+                user_found = True
+                break
+        if user_found == True:
+            return user_data
+        else:
+            raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This id does not exist"
+        )
+    
 
 ### Delete a user
 @app.delete(
@@ -195,7 +229,10 @@ def delete_user():
     summary="Update a user",
     tags=["Users"]
 )
-def update_user():
+def update_user(
+    user_id: str = Path(..., min_length=1)
+
+):
     pass
 
 ## Tweets
