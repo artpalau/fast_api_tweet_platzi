@@ -386,8 +386,39 @@ def post(
     summary="Display a tweet",
     tags=['Tweets']
 )
-def post():
-    pass
+def post(
+    tweet_id: str = Path(..., min_length=1)
+):
+    """
+    Display single tweet in the app
+
+    This path operation will display a single tweet in the app.
+
+    Parameters:
+        - tweet_id : str
+
+    Returns: Returns json list with the tweet in the app, with the following data:
+        - tweet_id: UUID
+        - content: str
+        - created_at: datetime
+        - updated_at: datetime, optional
+        - by: User
+
+    """
+    with open("tweets.json", "r", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        tweet_found = False
+        for tweet_data in results:
+            if tweet_data["tweet_id"] == tweet_id:
+                tweet_found = True
+                break
+        if tweet_found == True:
+            return tweet_data
+        else:
+            raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This id does not exist"
+        )
 
 ### Delete a tweet
 @app.delete(
