@@ -14,7 +14,9 @@ from pydantic import Field
 ## FastApi
 from fastapi import FastAPI
 from fastapi import status
-from fastapi import Body, Form
+from fastapi import Body, Form, Path
+from fastapi import HTTPException
+
 
 app = FastAPI()
 
@@ -173,31 +175,138 @@ def display_all_users():
     summary="Display a user",
     tags=["Users"]
 )
-def display_user():
-    pass
+def display_user(
+    user_id: str = Path(..., min_length=1)
+):
+    """
+    Display single user data
 
+    This path operation will display a single user from the app.
+
+    Parameters:
+        - userid : str
+
+    Returns: Returns json list with the user in the app, with the following data:
+        - user_id: UUID
+        - email: Emailstr
+        - firstName: str
+        - lastName: str
+        - birth_date: date
+
+    """
+    with open("users.json", "r", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        user_found = False
+        for user_data in results:
+            if user_data["user_id"] == user_id:
+                user_found = True
+                break
+        if user_found == True:
+            return user_data
+        else:
+            raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This id does not exist"
+        )
+    
 ### Delete a user
 @app.delete(
     path="/users/{user_id}/delete",
-    response_model=User,
+    #response_model=User,
     status_code=status.HTTP_200_OK,
     summary="Delete a user",
     tags=["Users"]
 )
-def delete_user():
-    pass
+def delete_user(
+    user_id: str = Path(..., min_length=1)
+):
+    """
+    Delete single user data
+
+    This path operation will delete a single user from the app.
+
+    Parameters:
+        - userid : str
+
+    Returns: Returns a confirmation of what id was deleted
+
+    """
+    with open("users.json", "r+", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        user_found = False
+        for i in range(len(results)):
+            if results[i]["user_id"] == user_id:
+                user_found = True
+                break
+        if user_found == True:
+            del results[i]
+        else:
+            raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This id does not exist"
+            )
+        f.truncate(0)
+        f.seek(0)
+        f.write(json.dumps(results))
+        return {"user id deleted": user_id}
 
 ### Update a user
 @app.put(
     path="/users/{user_id}/update",
-    response_model=User,
+    #response_model=User,
     status_code=status.HTTP_200_OK,
     summary="Update a user",
     tags=["Users"]
 )
-def update_user():
-    pass
+def update_user(
+    user_id: str = Path(..., min_length=1),
+    email: Optional[str] = Form(default=None),
+    firstName: Optional[str] = Form(default=None),
+    lastName: Optional[str] = Form(default=None),
+    birth_date: Optional[str] = Form(default=None)
+): 
+    """
+    Update single user data
 
+    This path operation will update a single users data from the app.
+
+    Parameters:
+        - userid : str
+        - email: str, optional
+        - firstName: str, optional
+        - lastName: str, optional
+        - birth_date: str, optional
+
+    Returns: Returns json list with the user deleted from the app, with the following data:
+        - user_id: UUID
+        - email: Emailstr
+        - firstName: str
+        - lastName: str
+        - birth_date: date
+
+    """
+    with open("users.json", "r+", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        user_found = False
+        for i in range(len(results)):
+            if results[i]["user_id"] == user_id:
+                user_found = True
+                break
+        if user_found == True:
+            if email: results[i]["email"] = email
+            if firstName: results[i]["firstName"] = firstName
+            if lastName: results[i]["lastName"] = lastName
+            if birth_date: results[i]["birth_date"] = birth_date
+        else:
+            raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This id does not exist"
+            )
+        f.truncate(0)
+        f.seek(0)
+        f.write(json.dumps(results))
+        return {"user id is updated": user_id}
+    
 ## Tweets
 
 ### Display all tweets
