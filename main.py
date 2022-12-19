@@ -386,7 +386,7 @@ def post(
     summary="Display a tweet",
     tags=['Tweets']
 )
-def post(
+def display_tweet(
     tweet_id: str = Path(..., min_length=1)
 ):
     """
@@ -428,7 +428,7 @@ def post(
     summary="Delete a tweet",
     tags=['Tweets']
 )
-def post(
+def delete_tweet(
     tweet_id: str = Path(..., min_length=1)
 ):
     """
@@ -439,7 +439,12 @@ def post(
     Parameters:
         - tweet_id : str
 
-    Returns: Returns a confirmation of what id was deleted
+    Return: Returns a json with the basic tweet information:
+        - tweet_id: UUID
+        - content: str
+        - created_at: datetime
+        - updated_at: datetime, optional
+        - by: User
 
     """
     with open("tweets.json", "r+", encoding="utf-8") as f:
@@ -464,10 +469,51 @@ def post(
 ### Update a tweet
 @app.put(
     path="/tweets/{tweet_id}/update",
-    response_model=Tweet,
+    #response_model=Tweet,
     status_code=status.HTTP_200_OK,
     summary="Update a tweet",
     tags=['Tweets']
 )
-def post():
-    pass
+def update_tweet(
+    tweet_id: str = Path(..., min_length=1),
+    content: str = Form(..., min_length=1),
+    updated_at: datetime = Form(default=datetime.now())
+):
+    """
+    Update single tweet data
+
+    This path operation will update a single tweet from the app.
+
+    Parameters:
+        - tweet_id : str
+        - content: str
+        - updated_at: datetime
+
+    Return: Returns a json with the basic tweet information:
+        - tweet_id: UUID
+        - content: str
+        - created_at: datetime
+        - updated_at: datetime, optional
+        - by: User
+
+    """
+    with open("tweets.json", "r+", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        tweet_found = False
+        for i in range(len(results)):
+            if results[i]["tweet_id"] == tweet_id:
+                tweet_found = True
+                break
+        if tweet_found == True:
+            updated_at= str(updated_at)
+            results[i]["content"] = content
+            results[i]["updated_at"] = updated_at
+        else:
+            raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This id does not exist"
+            )
+        f.truncate(0)
+        f.seek(0)
+        f.write(json.dumps(results))
+        return {"user id is updated": tweet_id}
