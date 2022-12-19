@@ -209,7 +209,6 @@ def display_user(
             detail="This id does not exist"
         )
     
-
 ### Delete a user
 @app.delete(
     path="/users/{user_id}/delete",
@@ -229,12 +228,7 @@ def delete_user(
     Parameters:
         - userid : str
 
-    Returns: Returns json list with the user deleted from the app, with the following data:
-        - user_id: UUID
-        - email: Emailstr
-        - firstName: str
-        - lastName: str
-        - birth_date: date
+    Returns: Returns a confirmation of what id was deleted
 
     """
     with open("users.json", "r+", encoding="utf-8") as f:
@@ -259,17 +253,60 @@ def delete_user(
 ### Update a user
 @app.put(
     path="/users/{user_id}/update",
-    response_model=User,
+    #response_model=User,
     status_code=status.HTTP_200_OK,
     summary="Update a user",
     tags=["Users"]
 )
 def update_user(
-    
-): pass
-    
+    user_id: str = Path(..., min_length=1),
+    email: Optional[str] = Form(default=None),
+    firstName: Optional[str] = Form(default=None),
+    lastName: Optional[str] = Form(default=None),
+    birth_date: Optional[str] = Form(default=None)
+): 
+    """
+    Update single user data
 
+    This path operation will update a single users data from the app.
 
+    Parameters:
+        - userid : str
+        - email: str, optional
+        - firstName: str, optional
+        - lastName: str, optional
+        - birth_date: str, optional
+
+    Returns: Returns json list with the user deleted from the app, with the following data:
+        - user_id: UUID
+        - email: Emailstr
+        - firstName: str
+        - lastName: str
+        - birth_date: date
+
+    """
+    with open("users.json", "r+", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        user_found = False
+        for i in range(len(results)):
+            if results[i]["user_id"] == user_id:
+                user_found = True
+                break
+        if user_found == True:
+            if email: results[i]["email"] = email
+            if firstName: results[i]["firstName"] = firstName
+            if lastName: results[i]["lastName"] = lastName
+            if birth_date: results[i]["birth_date"] = birth_date
+        else:
+            raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This id does not exist"
+            )
+        f.truncate(0)
+        f.seek(0)
+        f.write(json.dumps(results))
+        return {"user id is updated": user_id}
+    
 ## Tweets
 
 ### Display all tweets
