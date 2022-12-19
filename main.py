@@ -423,13 +423,43 @@ def post(
 ### Delete a tweet
 @app.delete(
     path="/tweets/{tweet_id}/delete",
-    response_model=Tweet,
+    #response_model=Tweet,
     status_code=status.HTTP_200_OK,
     summary="Delete a tweet",
     tags=['Tweets']
 )
-def post():
-    pass
+def post(
+    tweet_id: str = Path(..., min_length=1)
+):
+    """
+    Delete single tweet data
+
+    This path operation will delete a single tweet from the app.
+
+    Parameters:
+        - tweet_id : str
+
+    Returns: Returns a confirmation of what id was deleted
+
+    """
+    with open("tweets.json", "r+", encoding="utf-8") as f:
+        results = json.loads(f.read())
+        tweet_found = False
+        for i in range(len(results)):
+            if results[i]["tweet_id"] == tweet_id:
+                tweet_found = True
+                break
+        if tweet_found == True:
+            del results[i]
+        else:
+            raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="This id does not exist"
+            )
+        f.truncate(0)
+        f.seek(0)
+        f.write(json.dumps(results))
+        return {"user id deleted": tweet_id}
 
 ### Update a tweet
 @app.put(
